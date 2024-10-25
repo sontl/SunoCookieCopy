@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Display the intercepted cookie if available
+  // Display the intercepted cookie and last update time if available
   updateCookieDisplay();
 });
 
@@ -25,12 +25,21 @@ document.getElementById('copyCookie').addEventListener('click', async () => {
 });
 
 function updateCookieDisplay() {
-  chrome.storage.local.get(['interceptedCookie'], function(result) {
+  chrome.storage.local.get(['interceptedCookie', 'lastInterceptTime'], function(result) {
     const cookieValue = document.getElementById('cookieValue');
+    const lastUpdateTime = document.getElementById('lastUpdateTime');
+    
     if (result.interceptedCookie) {
-      cookieValue.textContent = result.interceptedCookie;
+      cookieValue.textContent = `Cookie: ${result.interceptedCookie}`;
+      if (result.lastInterceptTime) {
+        const formattedTime = new Date(result.lastInterceptTime).toLocaleString();
+        lastUpdateTime.textContent = `Last updated: ${formattedTime}`;
+      } else {
+        lastUpdateTime.textContent = 'Last updated: Unknown';
+      }
     } else {
       cookieValue.textContent = 'No cookie intercepted yet.';
+      lastUpdateTime.textContent = '';
     }
   });
 }
@@ -46,7 +55,6 @@ async function getCookieString() {
   const cookies = await chrome.cookies.getAll({
     domain: "suno.com"
   });
-
   const gaCookie = cookies.find(cookie => cookie.name === '_ga');
   const cfCookie = cookies.find(cookie => cookie.name === '_cf_bm');
 

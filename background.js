@@ -1,12 +1,20 @@
 let hasIntercepted = false;
 
 chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((info) => {
-  if (!hasIntercepted && info.request.url.includes('clerk.suno.com/v1/client')) {
+  if (info.request.url.includes('clerk.suno.com/v1/client')) {
     console.log('Intercepting request:', info.request);
     chrome.cookies.getAll({ url: 'https://clerk.suno.com' }, (cookies) => {
       let cookieString = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
       console.log('Intercepted Cookie:', cookieString);
-      chrome.storage.local.set({ interceptedCookie: cookieString });
+      
+      // Add timestamp to the stored data
+      const timestamp = new Date().toISOString();
+      chrome.storage.local.set({ 
+        interceptedCookie: cookieString,
+        lastInterceptTime: timestamp
+      });
+      
+      console.log('Cookie updated at:', timestamp);
       hasIntercepted = true;
     });
   }
